@@ -1,0 +1,72 @@
+# Este código implementa un clasificador de imágenes de dígitos manuscritos utilizando una red neuronal convolucional (CNN) con TensorFlow y Keras. A continuación se describen las etapas clave:
+# Importación de librerías: Se utilizan TensorFlow y Matplotlib para crear el modelo y visualizar los resultados.
+# Carga y normalización de datos: El conjunto de datos MNIST se carga y se normaliza para que los valores de los píxeles estén entre 0 y 1.
+# Redimensionamiento: Las imágenes se redimensionan para que sean compatibles con la entrada de la red neuronal.
+# Construcción del modelo: Se crea una CNN con capas convolucionales y de agrupamiento (pooling), seguida de capas densas.
+# Compilación: El modelo se compila utilizando el optimizador Adam y la función de pérdida sparse_categorical_crossentropy.
+# Entrenamiento: El modelo se entrena durante cinco épocas utilizando los datos de entrenamiento y validación.
+# Evaluación: Se evalúa la precisión del modelo en el conjunto de prueba.
+# Visualización: Se grafican la precisión y la pérdida durante el entrenamiento.
+# Este enfoque proporciona una base sólida para desarrollar un clasificador efectivo para dígitos manuscritos utilizando técnicas de aprendizaje supervisado.
+
+
+# Importar las librerías necesarias
+import tensorflow as tf
+from tensorflow.keras import layers, models
+from tensorflow.keras.datasets import mnist
+import matplotlib.pyplot as plt
+
+# Cargar el conjunto de datos MNIST
+(X_train, y_train), (X_test, y_test) = mnist.load_data()
+
+# Normalizar los datos a un rango de [0, 1]
+X_train = X_train.astype('float32') / 255.0
+X_test = X_test.astype('float32') / 255.0
+
+# Redimensionar las imágenes para que tengan un formato adecuado para la red neuronal
+X_train = X_train.reshape((X_train.shape[0], 28, 28, 1))
+X_test = X_test.reshape((X_test.shape[0], 28, 28, 1))
+
+# Crear el modelo de la red neuronal convolucional
+model = models.Sequential()
+model.add(layers.Conv2D(32, (3, 3), activation='relu', input_shape=(28, 28, 1)))
+model.add(layers.MaxPooling2D((2, 2)))
+model.add(layers.Conv2D(64, (3, 3), activation='relu'))
+model.add(layers.MaxPooling2D((2, 2)))
+model.add(layers.Conv2D(64, (3, 3), activation='relu'))
+model.add(layers.Flatten())
+model.add(layers.Dense(64, activation='relu'))
+model.add(layers.Dense(10, activation='softmax')) # Capa de salida para 10 clases (dígitos del 0 al 9)
+
+# Compilar el modelo
+model.compile(optimizer='adam',
+              loss='sparse_categorical_crossentropy',
+              metrics=['accuracy'])
+
+# Entrenar el modelo
+history = model.fit(X_train, y_train, epochs=5, validation_data=(X_test, y_test))
+
+# Evaluar el modelo en el conjunto de prueba
+test_loss, test_acc = model.evaluate(X_test, y_test)
+print(f'Precisión en el conjunto de prueba: {test_acc:.4f}')
+
+# Graficar la precisión y la pérdida durante el entrenamiento
+plt.figure(figsize=(12, 4))
+
+plt.subplot(1, 2, 1)
+plt.plot(history.history['accuracy'], label='Precisión en entrenamiento')
+plt.plot(history.history['val_accuracy'], label='Precisión en validación')
+plt.title('Precisión del modelo')
+plt.xlabel('Épocas')
+plt.ylabel('Precisión')
+plt.legend()
+
+plt.subplot(1, 2, 2)
+plt.plot(history.history['loss'], label='Pérdida en entrenamiento')
+plt.plot(history.history['val_loss'], label='Pérdida en validación')
+plt.title('Pérdida del modelo')
+plt.xlabel('Épocas')
+plt.ylabel('Pérdida')
+plt.legend()
+
+plt.show()
